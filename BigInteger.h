@@ -1,6 +1,6 @@
 /*
-	BigInteger.h: Header file for BigInteger structure
-	By Anthony Enem
+BigInteger.h: Header file for BigInteger structure
+By Anthony Enem
 */
 
 #ifndef BIG_INTEGER_H
@@ -22,9 +22,6 @@ private:
 
 	/*PRIVATE HELPER METHODS*/
 
-	//Subtract BigIntegers
-	BigInteger& subtract(const BigInteger& other) const;
-
 	//Add BigIntegers
 	BigInteger& add(const BigInteger& other) const;
 
@@ -34,6 +31,9 @@ private:
 	//Compare BigIntegers
 	int compare(const BigInteger& other) const;
 
+	//Subtract BigIntegers
+	BigInteger& subtract(const BigInteger& other) const;
+
 public:
 	const int DIGITS_PER_INDEX;
 	const ull MOD_VAL;
@@ -41,9 +41,13 @@ public:
 	//default constructor
 	BigInteger();
 
+	BigInteger(ll integer);
+
 	//copy constructor
 	BigInteger(const BigInteger& other);
 
+	//Destructor
+	~BigInteger();
 
 	/*OVERLOADED OPERATORS*/
 
