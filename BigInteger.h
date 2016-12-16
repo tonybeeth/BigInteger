@@ -6,18 +6,18 @@ By Anthony Enem
 #ifndef BIG_INTEGER_H
 #define BIG_INTEGER_H
 
+#include<iostream>
+#include<iomanip>
 #include<vector>
 using namespace std;
 
 #define endl '\n'
-#define ull unsigned long long
 #define ll long long
-
 
 class BigInteger
 {
 private:
-	vector<ull> N;
+	vector<ll> N;
 	int sign;
 
 	/*PRIVATE HELPER METHODS*/
@@ -36,7 +36,7 @@ private:
 
 public:
 	const int DIGITS_PER_INDEX;
-	const ull MOD_VAL;
+	const ll MOD_VAL;
 
 	//default constructor
 	BigInteger();
@@ -52,45 +52,35 @@ public:
 	/*OVERLOADED OPERATORS*/
 
 	//Addition
-	BigInteger& operator+(ll integer) const;
 	BigInteger& operator+(const BigInteger& other) const;
-	BigInteger& operator+=(ll integer);
 	BigInteger& operator+=(const BigInteger& other);
 
 	//Negate operator
 	BigInteger& operator-(void);
 
 	//Subtraction
-	BigInteger& operator-(ll integer) const;
 	BigInteger& operator-(const BigInteger& other) const;
-	BigInteger& operator-=(ll integer);
 	BigInteger& operator-=(const BigInteger& other);
 
 	//Multiplication
-	BigInteger& operator *(ll integer) const;
 	BigInteger& operator *(const BigInteger& other) const;
-	BigInteger& operator*=(ll integer);
 	BigInteger& operator*=(const BigInteger& other);
 
 	//Greater than
-	bool operator>(ll integer) const;
 	bool operator>(const BigInteger& other) const;
-	bool operator >=(ll integer) const;
 	bool operator >=(const BigInteger& other) const;
 
 	//Less than
-	bool operator<(ll integer) const;
 	bool operator<(const BigInteger& other) const;
-	bool operator<=(ll integer) const;
 	bool operator<=(const BigInteger& other) const;
 
 	//Equals
-	bool operator==(ll integer) const;
 	bool operator==(const BigInteger& other) const;
 
 	//Assignment operator
-	BigInteger& operator=(ll integer);
 	BigInteger& operator=(const BigInteger& other);
+
+	friend  ostream& operator<<(ostream& os, const BigInteger &bg);
 
 };
 
