@@ -4,8 +4,6 @@ By Anthony Enem
 */
 
 #include "BigInteger.h"
-#include <math.h>
-#include <algorithm>
 
 /*
 Default Constructor
@@ -21,6 +19,37 @@ BigInteger::BigInteger() :
 BigInteger::~BigInteger()
 {
 	N.clear();
+}
+
+BigInteger::BigInteger(const char* rhs) : 
+	DIGITS_PER_INDEX(9), MOD_VAL(pow(10, DIGITS_PER_INDEX))
+{
+	if (!rhs) {
+		N.resize(1); sign = 1;
+		return;
+	}
+	size_t len_rhs = strlen(rhs), copied_len = 0;
+	char* digits = new char[DIGITS_PER_INDEX+1];
+	ll int_val;
+
+	//assign BigInteger sign
+	if (len_rhs && !isdigit(rhs[0])) {
+		sign = rhs[0] == '-' ? -1 : 1;
+		copied_len = 1;
+	}
+
+	//parse digits
+	while (copied_len < len_rhs) {
+		strncpy(digits, rhs + copied_len, DIGITS_PER_INDEX);
+		int_val = std::stoll(digits);
+		copied_len += DIGITS_PER_INDEX;
+		N.push_back(int_val);
+	}
+	//vector must have a value
+	if (N.size() == 0) {
+		N.resize(1); sign = 1;
+	}
+	reverse(N.begin(), N.end());	
 }
 
 BigInteger::BigInteger(ll integer) :
@@ -59,7 +88,7 @@ BigInteger::BigInteger(const BigInteger& other) :
 BigInteger& BigInteger::add(const BigInteger& other) const
 {
 	BigInteger *result = new BigInteger();
-	result->N.resize(max(N.size(), other.N.size()));
+	result->N.resize(std::max(N.size(), other.N.size()));
 
 	ll firstVal, secondVal, sumVal;
 	int thisIdx, otherIdx, resultIdx, carry = 0;
@@ -127,7 +156,7 @@ BigInteger& BigInteger::subtract(const BigInteger& other) const
 		}
 	}
 
-	result->N.resize(max(lastNonZeroIdx + 1, 1));
+	result->N.resize(std::max(lastNonZeroIdx + 1, 1));
 
 	return *result;
 }
@@ -135,7 +164,7 @@ BigInteger& BigInteger::subtract(const BigInteger& other) const
 //Multiply BigIntegers
 BigInteger& BigInteger::multiply(const BigInteger& other) const
 {
-	BigInteger zero = 0;
+	BigInteger zero;
 
 	//if either is zero, return zero
 	if (other == zero || (*this) == zero)
@@ -301,15 +330,15 @@ BigInteger& operator-(const BigInteger& other) const;
 BigInteger& operator-=(const BigInteger& other);
 */
 
-ostream& operator<<(ostream& os, const BigInteger &bg)
+std::ostream& operator<<(std::ostream& os, const BigInteger &bg)
 {
 	if (bg.sign == -1) {
-		cout << '-';
+		os << '-';
 	}
-	cout << bg.N[bg.N.size() - 1];
+	os << bg.N[bg.N.size() - 1];
 	for (int i = bg.N.size() - 2; i > -1; i--)
 	{
-		os << setfill('0') << setw(bg.DIGITS_PER_INDEX) << bg.N[i];
+		os << std::setfill('0') << std::setw(bg.DIGITS_PER_INDEX) << bg.N[i];
 	}
 	return os;
 }

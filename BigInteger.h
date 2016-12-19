@@ -6,10 +6,12 @@ By Anthony Enem
 #ifndef BIG_INTEGER_H
 #define BIG_INTEGER_H
 
-#include<iostream>
-#include<iomanip>
-#include<vector>
-using namespace std;
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include <cstring>
+#include <cmath>
+#include <algorithm>
 
 #define endl '\n'
 #define ll long long
@@ -17,7 +19,7 @@ using namespace std;
 class BigInteger
 {
 private:
-	vector<ll> N;
+	std::vector<ll> N;
 	int sign;
 
 	/*PRIVATE HELPER METHODS*/
@@ -42,6 +44,8 @@ public:
 	BigInteger();
 
 	BigInteger(ll integer);
+
+	BigInteger(const char* rhs);
 
 	//copy constructor
 	BigInteger(const BigInteger& other);
@@ -80,7 +84,7 @@ public:
 	//Assignment operator
 	BigInteger& operator=(const BigInteger& other);
 
-	friend  ostream& operator<<(ostream& os, const BigInteger &bg);
+	friend  std::ostream& operator<<(std::ostream& os, const BigInteger &bg);
 
 };
 
