@@ -12,6 +12,7 @@ By Anthony Enem
 #include <cstring>
 #include <cmath>
 #include <algorithm>
+#include <string>
 
 #define endl '\n'
 #define ll long long
@@ -25,66 +26,82 @@ private:
 	/*PRIVATE HELPER METHODS*/
 
 	//Add BigIntegers
-	BigInteger& add(const BigInteger& other) const;
+	void sum_Magnitudes(const BigInteger&, BigInteger&) const;
 
 	//Multiply BigIntegers
-	BigInteger& multiply(const BigInteger& other) const;
+	void multiply(const BigInteger&, BigInteger&) const;
 
 	//Compare BigIntegers
-	int compare(const BigInteger& other) const;
+	int compare(const BigInteger&) const;
 
 	//Subtract BigIntegers
-	BigInteger& subtract(const BigInteger& other) const;
+	void diff_Magnitudes(const BigInteger&, BigInteger&, int) const;
+
+	int comp_Magnitudes(const BigInteger&) const;
 
 public:
-	const int DIGITS_PER_INDEX;
-	const ll MOD_VAL;
+	static const int DIGITS_PER_INDEX = 9;
+	static const ll MOD_VAL = pow(10, DIGITS_PER_INDEX);
 
 	//default constructor
 	BigInteger();
 
 	BigInteger(ll integer);
 
-	BigInteger(const char* rhs);
+	BigInteger(const char*);
 
 	//copy constructor
-	BigInteger(const BigInteger& other);
+	BigInteger(const BigInteger&);
 
 	//Destructor
 	~BigInteger();
 
+	bool isNegative() const;
+
+	BigInteger Abs() const;
+
+	bool isZero() const;
+
 	/*OVERLOADED OPERATORS*/
 
 	//Addition
-	BigInteger& operator+(const BigInteger& other) const;
-	BigInteger& operator+=(const BigInteger& other);
+	BigInteger operator+(const BigInteger&) const;
+	BigInteger& operator+=(const BigInteger&);
 
 	//Negate operator
-	BigInteger& operator-(void);
+	BigInteger operator-(void) const;
 
 	//Subtraction
-	BigInteger& operator-(const BigInteger& other) const;
-	BigInteger& operator-=(const BigInteger& other);
+	BigInteger operator-(const BigInteger&) const;
+	BigInteger& operator-=(const BigInteger&);
 
 	//Multiplication
-	BigInteger& operator *(const BigInteger& other) const;
-	BigInteger& operator*=(const BigInteger& other);
+	BigInteger operator *(const BigInteger&) const;
+	BigInteger& operator*=(const BigInteger&);
 
 	//Greater than
-	bool operator>(const BigInteger& other) const;
-	bool operator >=(const BigInteger& other) const;
+	bool operator>(const BigInteger&) const;
+	bool operator >=(const BigInteger&) const;
 
 	//Less than
-	bool operator<(const BigInteger& other) const;
-	bool operator<=(const BigInteger& other) const;
+	bool operator<(const BigInteger&) const;
+	bool operator<=(const BigInteger&) const;
 
 	//Equals
-	bool operator==(const BigInteger& other) const;
+	bool operator==(const BigInteger&) const;
 
 	//Assignment operator
-	BigInteger& operator=(const BigInteger& other);
+	BigInteger& operator=(const BigInteger&);
 
-	friend  std::ostream& operator<<(std::ostream& os, const BigInteger &bg);
+	friend std::ostream& operator<<(std::ostream&, const BigInteger&);
+
+	//Increment
+	BigInteger& operator++(); //prefix
+	BigInteger operator++(int); //postfix
+
+	//Decrement
+	BigInteger& operator--();
+	BigInteger operator--(int);
 
 };
 

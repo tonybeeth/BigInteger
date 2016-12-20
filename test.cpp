@@ -5,10 +5,13 @@ using namespace std;
 
 int main()
 {
-	BigInteger a = "2893094";
-	BigInteger b = 2893094;
-	BigInteger c = a * b * a * b;
+	BigInteger y = 1;
 
-	cout << c << endl;
+	//Calculating 1000 factorial
+	for(BigInteger x = 2; x <= 1000; ++x){
+		y *= x;
+	}
+
+	cout << y << endl;
 	return 0;
 }

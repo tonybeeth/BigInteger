@@ -5,31 +5,28 @@ By Anthony Enem
 
 #include "BigInteger.h"
 
-/*
-Default Constructor
-BigInteger defaults to a value of 0 and positive
-*/
-BigInteger::BigInteger() :
-	DIGITS_PER_INDEX(9), MOD_VAL(pow(10, DIGITS_PER_INDEX))
+//Default constructor
+BigInteger::BigInteger()
 {
 	N.resize(1);
 	sign = 1;
 }
 
+//Destructor
 BigInteger::~BigInteger()
 {
 	N.clear();
 }
 
-BigInteger::BigInteger(const char* rhs) : 
-	DIGITS_PER_INDEX(9), MOD_VAL(pow(10, DIGITS_PER_INDEX))
+//string parameterized constructor
+BigInteger::BigInteger(const char* rhs)
 {
 	if (!rhs) {
 		N.resize(1); sign = 1;
 		return;
 	}
 	size_t len_rhs = strlen(rhs), copied_len = 0;
-	char* digits = new char[DIGITS_PER_INDEX+1];
+	char* digits = new char[DIGITS_PER_INDEX + 1];
 	ll int_val;
 
 	//assign BigInteger sign
@@ -49,31 +46,28 @@ BigInteger::BigInteger(const char* rhs) :
 	if (N.size() == 0) {
 		N.resize(1); sign = 1;
 	}
-	reverse(N.begin(), N.end());	
+	reverse(N.begin(), N.end());
 }
 
-BigInteger::BigInteger(ll integer) :
-	DIGITS_PER_INDEX(9), MOD_VAL(pow(10, DIGITS_PER_INDEX))
+//Parameterized constructor for integers
+BigInteger::BigInteger(ll integer)
 {
+	this->sign = integer < 0 ? -1 : 1;
+	if(integer == 0){
+		N.resize(1);
+		return;
+	}
 	//Split integer into vector
+	integer = abs(integer);
 	while (integer > 0)
 	{
 		N.push_back(integer % MOD_VAL);
 		integer /= MOD_VAL;
 	}
-
-	//Check sign
-	if (integer < 0) {
-		sign = -1;
-	}
-	else {
-		sign = 1;
-	}
 }
 
 //copy constructor
-BigInteger::BigInteger(const BigInteger& other) :
-	DIGITS_PER_INDEX(other.DIGITS_PER_INDEX), MOD_VAL(other.MOD_VAL)
+BigInteger::BigInteger(const BigInteger& other)
 {
 	N.clear();
 	N.resize(other.N.size());
@@ -81,14 +75,12 @@ BigInteger::BigInteger(const BigInteger& other) :
 	sign = other.sign;
 }
 
-
 /*PRIVATE HELPER METHODS*/
 
-//Add BigIntegers
-BigInteger& BigInteger::add(const BigInteger& other) const
+//Get sum of BigInteger magnitudes
+void BigInteger::sum_Magnitudes(const BigInteger& other, BigInteger& result) const
 {
-	BigInteger *result = new BigInteger();
-	result->N.resize(std::max(N.size(), other.N.size()));
+	result.N.resize(std::max(N.size(), other.N.size()));
 
 	ll firstVal, secondVal, sumVal;
 	int thisIdx, otherIdx, resultIdx, carry = 0;
@@ -107,70 +99,72 @@ BigInteger& BigInteger::add(const BigInteger& other) const
 			++otherIdx;
 		}
 		sumVal = firstVal + secondVal + carry;
-		result->N[resultIdx] = sumVal % MOD_VAL;
-		carry = (sumVal - result->N[resultIdx]) / MOD_VAL;
+		result.N[resultIdx] = sumVal % MOD_VAL;
+		carry = (sumVal - result.N[resultIdx]) / MOD_VAL;
 
 		++resultIdx;
 	}
 
 	//if carry exists, add to BigInteger
 	if (carry) {
-		result->N.push_back(carry);
+		result.N.push_back(carry);
 	}
 
-	return *result;
 }
 
-BigInteger& BigInteger::subtract(const BigInteger& other) const
+//Get difference of BigInteger Magnitudes
+void BigInteger::diff_Magnitudes(const BigInteger& other, BigInteger& result, int lhs_greater) const
 {
-	BigInteger *result = new BigInteger();
 	int8_t carry = 0;
-	result->N.clear();
+	const BigInteger *first = this, *second = &other;
 
-	result->N.resize(N.size());
+	//assign first pointer to BigInteger with bigger Magnitude, second pointer to smaller
+	if (lhs_greater == -1) {
+		first = &other;
+		second = this;
+	}
+
+	result.N.resize(std::max(N.size(), other.N.size()));
 	int index, lastNonZeroIdx = -1;
+	ll first_val, second_val;
 
-	for (index = 0; index < N.size(); index++) {
-		if (index < other.N.size()) {
-			if (N[index] + carry < other.N[index]) {
-				result->N[index] = MOD_VAL + N[index] + carry - other.N[index];
-				carry = -1;
-			}
-			else {
-				result->N[index] = N[index] + carry - other.N[index];
-				carry = 0;
-			}
+	for (index = 0; index < first->N.size(); ++index) {
+		first_val = first->N[index] + carry;
+		second_val = 0;
+		//assign second value if it exists
+		if (index < second->N.size()) {
+			second_val = second->N[index];
+		}
+		//calculate result and assign appropriate carry
+		if (first_val >= second_val) {
+			result.N[index] = first_val - second_val;
+			carry = 0;
 		}
 		else {
-			if (N[index] + carry < 0) {
-				result->N[index] = MOD_VAL - 1;
-				carry = -1;
-			}
-			else {
-				result->N[index] = N[index] + carry;
-				carry = 0;
-			}
+			result.N[index] = MOD_VAL + first_val - second_val;
+			carry = -1;
 		}
-		if (result->N[index] != 0) {
+
+		if (result.N[index] != 0) {
 			lastNonZeroIdx = index;
 		}
 	}
-
-	result->N.resize(std::max(lastNonZeroIdx + 1, 1));
-
-	return *result;
+	//shrink result's magnitude to exclude leading zeros
+	result.N.resize(std::max(lastNonZeroIdx + 1, 1));
 }
 
 //Multiply BigIntegers
-BigInteger& BigInteger::multiply(const BigInteger& other) const
+void BigInteger::multiply(const BigInteger& other, BigInteger& result) const
 {
-	BigInteger zero;
+	//if either multiplicand or multiplier is zero, return zero
+	if (this->isZero() || other.isZero()) {
+		//set result to zero
+		result.N.resize(1); result.sign = 1;
+		return;
+	}
 
-	//if either is zero, return zero
-	if (other == zero || (*this) == zero)
-		return zero;
-
-	BigInteger *result = new BigInteger();
+	//allocate at least the bigger size of both BigIntegers for the result
+	result.N.resize(std::max(N.size(), other.N.size()));
 	ll current_value;
 	int otherIdx = 0, carry = 0, thisIdx, result_index;
 
@@ -183,58 +177,71 @@ BigInteger& BigInteger::multiply(const BigInteger& other) const
 			//multiply value at index of second to index of first, add carry from previous calculation
 			current_value = (other.N[otherIdx] * N[thisIdx]) + carry;
 
-			if (result_index < result->N.size()) { //if result fits
-				current_value += result->N[result_index];
-				result->N[result_index] = (current_value % MOD_VAL);
+			if (result_index < result.N.size()) { //if result fits
+				current_value += result.N[result_index];
+				result.N[result_index] = (current_value % MOD_VAL);
 			}
 			else
-				result->N.push_back(current_value % MOD_VAL); //need to expand result
+				result.N.push_back(current_value % MOD_VAL); //need to expand result
 			carry = current_value / MOD_VAL; //compute new carry
 		}
 		//if carry is left, expand result
 		if (carry) {
-			result->N.push_back(carry);
+			result.N.push_back(carry);
 			carry = 0;
 		}
 	}
 
-	result->sign = sign * other.sign;
-	return *result;
+	result.sign = sign * other.sign;
 }
 
 //Compare BigIntegers
 //0 for equal, 1 for greater, -1 for less
 int BigInteger::compare(const BigInteger& other) const
 {
-	//First check the vector sizes
+	//Check signs
+	if (sign > other.sign)
+		return 1;
+	if (other.sign > sign)
+		return -1;
+	//First check vector sizes
 	if (N.size() > other.N.size())
 		return 1;
 	if (N.size() < other.N.size())
 		return -1;
 
-	//vectors have same size. check individual indices
+	//BigIntegers have same signs and vector size. check Magnitudes
+	return comp_Magnitudes(other);
+}
+
+//Compare just magnitudes of both BigIntegers
+int BigInteger::comp_Magnitudes(const BigInteger& other) const
+{
 	for (int i = N.size() - 1; i != -1; --i)
 	{
-		if (N[i] > other.N[i])
+		if (N[i]*sign > other.N[i]*other.sign)
 			return 1;
-		if (N[i] < other.N[i])
+		if (N[i]*sign < other.N[i]*other.sign)
 			return -1;
 	}
-
 	return 0;
 }
 
 /*OVERLOADED OPERATORS*/
 
 //Multiplication
-BigInteger& BigInteger::operator *(const BigInteger& other) const
+BigInteger BigInteger::operator *(const BigInteger& other) const
 {
-	return multiply(other);
+	BigInteger result;
+	multiply(other, result);
+	return result;
 }
 
 BigInteger& BigInteger::operator*=(const BigInteger& other)
 {
-	(*this) = multiply(other);
+	BigInteger result;
+	multiply(other, result);
+	*this = std::move(result);
 
 	return *this;
 }
@@ -304,32 +311,114 @@ BigInteger& BigInteger::operator=(const BigInteger& other)
 }
 
 //Negate operator
-BigInteger& BigInteger::operator-(void)
+BigInteger BigInteger::operator-(void) const
 {
-	sign *= -1;
+	BigInteger result = *this;
+	result.sign *= -1;
+	return result;
+}
+
+bool BigInteger::isNegative() const
+{
+	return sign == -1;
+}
+
+BigInteger BigInteger::Abs() const
+{
+	BigInteger result = *this;
+	result.sign = 1;
+	return result;
+}
+
+//Equivalent to BigInteger == 0 to be used for special cases
+bool BigInteger::isZero() const
+{
+	return N.size() == 1 && N[0] == 0;
+}
+
+//Addition operator
+BigInteger BigInteger::operator+(const BigInteger& other) const
+{
+	BigInteger result;
+	//Get Magnitude comparison result
+	int comp_Mag = comp_Magnitudes(other);
+	//if both are of the same signs, sum their magnitudes
+	if (sign == other.sign) {
+		sum_Magnitudes(other, result);
+		result.sign = sign;
+	}
+	else {
+		//get Magnitude difference, assign appropriate sign
+		diff_Magnitudes(other, result, comp_Mag);
+		//if negative BigInteger has bigger magnitude, result's sign is negative, else positive
+		//if((sign == -1 && comp_Mag == 1) || (other.sign == -1 && comp_Mag == -1))
+
+		result.sign = (sign * comp_Mag) | 1;
+	}
+	return result;
+}
+
+BigInteger& BigInteger::operator+=(const BigInteger& other)
+{
+	*this = std::move(this->operator+(other));
 	return *this;
 }
 
-BigInteger& BigInteger::operator+(const BigInteger& other) const
-{
-	return add(other);
-}
-
-BigInteger& BigInteger::operator-(const BigInteger& other) const
-{
-	return subtract(other);
-}
-
-/*
-//Addition
-BigInteger& operator+(const BigInteger& other) const;
-BigInteger& operator+=(const BigInteger& other);
-
 //Subtraction
-BigInteger& operator-(const BigInteger& other) const;
-BigInteger& operator-=(const BigInteger& other);
-*/
+BigInteger BigInteger::operator-(const BigInteger& other) const
+{
+	BigInteger result;
+	int comp_Mag = comp_Magnitudes(other);
+	//if both BigIntegers have opposite signs, sum their magnitudes. resulting sign
+	//is sign of lhs
+	if (this->sign != other.sign) {
+		sum_Magnitudes(other, result);
+		result.sign = sign;
+	}
+	else {
+		//get difference of magnitudes and assign appropriate sign
+		diff_Magnitudes(other, result, comp_Mag);
+		//if ((this->isNegative() && comp_Mag == 1) || (other.isNegative() && comp_Mag == -1))
+		result.sign = (sign * comp_Mag) | 1;
+	}
+	return result;
+}
 
+BigInteger& BigInteger::operator-=(const BigInteger& other)
+{
+	*this = std::move(this->operator-(other));
+	return *this;
+}
+
+//Increment
+BigInteger& BigInteger::operator++() //prefix
+{
+	*this += 1;
+	return *this;
+}
+
+BigInteger BigInteger::operator++(int) //postfix
+{
+	BigInteger temp = *this;
+	*this += 1;
+	return temp;
+}
+
+//Decrement
+BigInteger& BigInteger::operator--()
+{
+	*this -= 1;
+	return *this;
+}
+
+BigInteger BigInteger::operator--(int)
+{
+	BigInteger temp = *this;
+	*this -= 1;
+	return temp;
+}
+
+//Overloaded insertion operator for ostream
 std::ostream& operator<<(std::ostream& os, const BigInteger &bg)
 {
 	if (bg.sign == -1) {
