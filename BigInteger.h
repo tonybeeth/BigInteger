@@ -14,14 +14,12 @@ By Anthony Enem
 #include <algorithm>
 #include <string>
 
-#define endl '\n'
-#define ll long long
-
 class BigInteger
 {
+	typedef long long int BaseType;
 private:
-	std::vector<ll> N;
-	int sign;
+	std::vector<BaseType> m_Mag;
+	int m_sign;
 
 	/*PRIVATE HELPER METHODS*/
 
@@ -41,12 +39,12 @@ private:
 
 public:
 	static const int DIGITS_PER_INDEX = 9;
-	static const ll MOD_VAL = pow(10, DIGITS_PER_INDEX);
+	static const BaseType MOD_VAL = pow(10, DIGITS_PER_INDEX);
 
 	//default constructor
 	BigInteger();
 
-	BigInteger(ll integer);
+	BigInteger(BaseType integer);
 
 	BigInteger(const char*);
 
