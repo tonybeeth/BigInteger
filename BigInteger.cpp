@@ -22,7 +22,7 @@ BigInteger::~BigInteger()
 BigInteger::BigInteger(const char* rhs)
 {
 	if (!rhs) {
-		N.resize(1); sign = 1;
+		*this = +0;
 		return;
 	}
 	size_t len_rhs = strlen(rhs), copied_len = 0;
@@ -83,33 +83,27 @@ void BigInteger::sum_Magnitudes(const BigInteger& other, BigInteger& result) con
 	result.N.resize(std::max(N.size(), other.N.size()));
 
 	ll firstVal, secondVal, sumVal;
-	int thisIdx, otherIdx, resultIdx, carry = 0;
-
-	for (thisIdx = 0, otherIdx = 0, resultIdx = 0;
-		thisIdx < N.size() || otherIdx < other.N.size(); )
+	int idx, carry = 0;
+	
+	for (idx = 0; idx < result.N.size(); ++idx)
 	{
 		firstVal = secondVal = 0;
 
-		if (thisIdx < N.size()) {
-			firstVal = N[thisIdx];
-			++thisIdx;
+		if (idx < N.size()) {
+			firstVal = N[idx];
 		}
-		if (otherIdx < other.N.size()) {
-			secondVal = other.N[otherIdx];
-			++otherIdx;
+		if (idx < other.N.size()) {
+			secondVal = other.N[idx];
 		}
 		sumVal = firstVal + secondVal + carry;
-		result.N[resultIdx] = sumVal % MOD_VAL;
-		carry = (sumVal - result.N[resultIdx]) / MOD_VAL;
-
-		++resultIdx;
+		result.N[idx] = sumVal % MOD_VAL;
+		carry = sumVal / MOD_VAL;
 	}
 
 	//if carry exists, add to BigInteger
 	if (carry) {
 		result.N.push_back(carry);
 	}
-
 }
 
 //Get difference of BigInteger Magnitudes
@@ -159,7 +153,7 @@ void BigInteger::multiply(const BigInteger& other, BigInteger& result) const
 	//if either multiplicand or multiplier is zero, return zero
 	if (this->isZero() || other.isZero()) {
 		//set result to zero
-		result.N.resize(1); result.sign = 1;
+		result = +0;
 		return;
 	}
 
@@ -424,10 +418,9 @@ std::ostream& operator<<(std::ostream& os, const BigInteger &bg)
 	if (bg.sign == -1) {
 		os << '-';
 	}
-	os << bg.N[bg.N.size() - 1];
-	for (int i = bg.N.size() - 2; i > -1; i--)
-	{
-		os << std::setfill('0') << std::setw(bg.DIGITS_PER_INDEX) << bg.N[i];
-	}
+	os << bg.N.back();
+	for_each(bg.N.rbegin() + 1, bg.N.rend(), [&bg, &os](const ll& val){
+		os << std::setfill('0') << std::setw(bg.DIGITS_PER_INDEX) << val;
+	});
 	return os;
 }
