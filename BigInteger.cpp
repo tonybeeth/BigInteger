@@ -109,7 +109,7 @@ void BigInteger::sum_Magnitudes(const BigInteger& other, BigInteger& result) con
 //Get difference of BigInteger Magnitudes
 void BigInteger::diff_Magnitudes(const BigInteger& other, BigInteger& result, int lhs_greater) const
 {
-	int8_t carry = 0;
+	BaseType carry = 0;
 	const BigInteger *first = this, *second = &other;
 
 	//assign first pointer to BigInteger with bigger Magnitude, second pointer to smaller
@@ -152,24 +152,22 @@ void BigInteger::multiply(const BigInteger& other, BigInteger& result) const
 {
 	//if either multiplicand or multiplier is zero, return zero
 	if (this->isZero() || other.isZero()) {
-		//set result to zero
 		result = +0;
 		return;
 	}
 
 	//allocate at least the bigger size of both BigIntegers for the result
 	result.m_Mag.resize(std::max(m_Mag.size(), other.m_Mag.size()));
-	BaseType current_value;
-	int otherIdx = 0, carry = 0, thisIdx, result_index;
+	BaseType current_value, carry = 0;
+	int offset_idx = 0, result_index;
 
 	//loop through second BigInt
-	for (; otherIdx < other.m_Mag.size(); ++otherIdx)
-	{
-		result_index = otherIdx;
+	for (const BaseType& other_val : other.m_Mag) {
+		result_index = offset_idx++;
 		//loop through first BigInt
-		for (thisIdx = 0; thisIdx < m_Mag.size(); thisIdx++, ++result_index) {
+		for (const BaseType& this_val : this->m_Mag) {
 			//multiply value at index of second to index of first, add carry from previous calculation
-			current_value = (other.m_Mag[otherIdx] * m_Mag[thisIdx]) + carry;
+			current_value = (other_val * this_val) + carry;
 
 			if (result_index < result.m_Mag.size()) { //if result fits
 				current_value += result.m_Mag[result_index];
@@ -178,6 +176,7 @@ void BigInteger::multiply(const BigInteger& other, BigInteger& result) const
 			else
 				result.m_Mag.push_back(current_value % MOD_VAL); //need to expand result
 			carry = current_value / MOD_VAL; //compute new carry
+			++result_index;
 		}
 		//if carry is left, expand result
 		if (carry) {
