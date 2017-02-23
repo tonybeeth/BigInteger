@@ -87,6 +87,7 @@ public:
 
 	//Equals
 	bool operator==(const BigInteger&) const;
+	bool operator!=(const BigInteger&) const;
 
 	//Assignment operator
 	BigInteger& operator=(const BigInteger&);

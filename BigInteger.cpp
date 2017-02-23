@@ -47,6 +47,8 @@ BigInteger::BigInteger(const char* rhs)
 		m_Mag.resize(1); m_sign = 1;
 	}
 	reverse(m_Mag.begin(), m_Mag.end());
+
+	delete[](digits);
 }
 
 //Parameterized constructor for integers
@@ -197,7 +199,7 @@ int BigInteger::compare(const BigInteger& other) const
 		return 1;
 	if (other.m_sign > m_sign)
 		return -1;
-	//First check vector sizes
+	//check vector sizes
 	if (m_Mag.size() > other.m_Mag.size())
 		return 1;
 	if (m_Mag.size() < other.m_Mag.size())
@@ -290,6 +292,11 @@ bool BigInteger::operator==(const BigInteger& other) const
 	else {
 		return false;
 	}
+}
+
+bool BigInteger::operator!=(const BigInteger& other) const
+{
+	return !(this->operator==(other));
 }
 
 //Assignment operator
