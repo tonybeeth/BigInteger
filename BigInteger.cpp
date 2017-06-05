@@ -18,35 +18,43 @@ BigInteger::~BigInteger()
 	m_Mag.clear();
 }
 
-//string parameterized constructor
-BigInteger::BigInteger(const char* rhs)
+//char* parameterized constructor
+BigInteger::BigInteger(const char* rhsDigits)
 {
-	if (!rhs) {
-		*this = +0;
+	if (!rhsDigits || strlen(rhsDigits) == 0) {
+		*this = BaseType(+0);
 		return;
 	}
+
+	const char* rhs = isdigit(rhsDigits[0]) ? rhsDigits : rhsDigits + 1;
+
 	size_t len_rhs = strlen(rhs), copied_len = 0;
 	char* digits = new char[DIGITS_PER_INDEX + 1];
 	BaseType ll_val;
 
 	//assign BigInteger sign
-	if (len_rhs && !isdigit(rhs[0])) {
+	if (len_rhs && len_rhs) {
 		m_sign = rhs[0] == '-' ? -1 : 1;
-		copied_len = 1;
 	}
 
 	//parse digits
-	while (copied_len < len_rhs) {
-		strncpy(digits, rhs + copied_len, DIGITS_PER_INDEX);
+	while (copied_len+DIGITS_PER_INDEX <= len_rhs) {
+		//Copy next set of digits from end of rhs
+		strncpy(digits, rhs + len_rhs - (DIGITS_PER_INDEX + copied_len), DIGITS_PER_INDEX);
+		//convert to integer
 		ll_val = std::stoll(digits);
 		copied_len += DIGITS_PER_INDEX;
+		//push to magnitude vector
 		m_Mag.push_back(ll_val);
+	}
+	if (copied_len < len_rhs) {
+		std::fill(digits, digits + DIGITS_PER_INDEX, '.'); //replace old digits with non numeric characters
+		m_Mag.push_back(std::stoll(strncpy(digits, rhs, len_rhs - copied_len))); //Push last set of digits
 	}
 	//vector must have a value
 	if (m_Mag.size() == 0) {
 		m_Mag.resize(1); m_sign = 1;
 	}
-	reverse(m_Mag.begin(), m_Mag.end());
 
 	delete[](digits);
 }
@@ -158,8 +166,6 @@ void BigInteger::multiply(const BigInteger& other, BigInteger& result) const
 		return;
 	}
 
-	//allocate at least the bigger size of both BigIntegers for the result
-	result.m_Mag.resize(std::max(m_Mag.size(), other.m_Mag.size()));
 	BaseType current_value, carry = 0;
 	int offset_idx = 0, result_index;
 
