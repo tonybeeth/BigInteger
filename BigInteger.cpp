@@ -8,8 +8,8 @@ By Anthony Enem
 //Default constructor
 BigInteger::BigInteger()
 {
-	m_Mag.resize(1);
-	m_sign = 1;
+	m_Mag.push_back(0);
+	m_sign = POSITIVE;
 }
 
 //Destructor
@@ -22,7 +22,7 @@ BigInteger::~BigInteger()
 BigInteger::BigInteger(const char* rhsDigits)
 {
 	if (!rhsDigits || strlen(rhsDigits) == 0) {
-		*this = BaseType(+0);
+		*this = BaseType(0);
 		return;
 	}
 
@@ -34,11 +34,11 @@ BigInteger::BigInteger(const char* rhsDigits)
 
 	//assign BigInteger sign
 	if (len_rhs && len_rhs) {
-		m_sign = rhs[0] == '-' ? -1 : 1;
+		m_sign = rhs[0] == '-' ? NEGATIVE : POSITIVE;
 	}
 
 	//parse digits
-	while (copied_len+DIGITS_PER_INDEX <= len_rhs) {
+	while (copied_len + DIGITS_PER_INDEX <= len_rhs) {
 		//Copy next set of digits from end of rhs
 		strncpy(digits, rhs + len_rhs - (DIGITS_PER_INDEX + copied_len), DIGITS_PER_INDEX);
 		//convert to integer
@@ -53,7 +53,8 @@ BigInteger::BigInteger(const char* rhsDigits)
 	}
 	//vector must have a value
 	if (m_Mag.size() == 0) {
-		m_Mag.resize(1); m_sign = 1;
+		m_Mag.push_back(0); 
+		m_sign = POSITIVE;
 	}
 
 	delete[](digits);
@@ -62,9 +63,9 @@ BigInteger::BigInteger(const char* rhsDigits)
 //Parameterized constructor for integers
 BigInteger::BigInteger(BaseType integer)
 {
-	this->m_sign = integer < 0 ? -1 : 1;
-	if(integer == 0){
-		m_Mag.resize(1);
+	this->m_sign = integer < 0 ? NEGATIVE : POSITIVE;
+	if (integer == 0) {
+		m_Mag.push_back(0);
 		return;
 	}
 	//Split integer into vector
@@ -94,7 +95,7 @@ void BigInteger::sum_Magnitudes(const BigInteger& other, BigInteger& result) con
 
 	BaseType firstVal, secondVal, sumVal;
 	int idx, carry = 0;
-	
+
 	for (idx = 0; idx < result.m_Mag.size(); ++idx)
 	{
 		firstVal = secondVal = 0;
@@ -117,13 +118,13 @@ void BigInteger::sum_Magnitudes(const BigInteger& other, BigInteger& result) con
 }
 
 //Get difference of BigInteger Magnitudes
-void BigInteger::diff_Magnitudes(const BigInteger& other, BigInteger& result, int lhs_greater) const
+void BigInteger::diff_Magnitudes(const BigInteger& other, BigInteger& result, BigInteger::COMPARE_RESULT lhs_greater) const
 {
 	BaseType carry = 0;
 	const BigInteger *first = this, *second = &other;
 
 	//assign first pointer to BigInteger with bigger Magnitude, second pointer to smaller
-	if (lhs_greater == -1) {
+	if (lhs_greater == LESS) {
 		first = &other;
 		second = this;
 	}
@@ -162,7 +163,7 @@ void BigInteger::multiply(const BigInteger& other, BigInteger& result) const
 {
 	//if either multiplicand or multiplier is zero, return zero
 	if (this->isZero() || other.isZero()) {
-		result = +0;
+		result = BaseType(0);
 		return;
 	}
 
@@ -193,39 +194,38 @@ void BigInteger::multiply(const BigInteger& other, BigInteger& result) const
 		}
 	}
 
-	result.m_sign = m_sign * other.m_sign;
+	result.m_sign = SIGN(m_sign * other.m_sign);
 }
 
 //Compare BigIntegers
-//0 for equal, 1 for greater, -1 for less
-int BigInteger::compare(const BigInteger& other) const
+BigInteger::COMPARE_RESULT BigInteger::compare(const BigInteger& other) const
 {
 	//Check signs
 	if (m_sign > other.m_sign)
-		return 1;
+		return GREATER;
 	if (other.m_sign > m_sign)
-		return -1;
+		return LESS;
 	//check vector sizes
 	if (m_Mag.size() > other.m_Mag.size())
-		return 1;
+		return GREATER;
 	if (m_Mag.size() < other.m_Mag.size())
-		return -1;
+		return LESS;
 
 	//BigIntegers have same signs and vector size. check Magnitudes
 	return comp_Magnitudes(other);
 }
 
 //Compare just magnitudes of both BigIntegers
-int BigInteger::comp_Magnitudes(const BigInteger& other) const
+BigInteger::COMPARE_RESULT BigInteger::comp_Magnitudes(const BigInteger& other) const
 {
 	for (int i = m_Mag.size() - 1; i != -1; --i)
 	{
-		if (m_Mag[i]*m_sign > other.m_Mag[i]*other.m_sign)
-			return 1;
-		if (m_Mag[i]*m_sign < other.m_Mag[i]*other.m_sign)
-			return -1;
+		if (m_Mag[i] > other.m_Mag[i])
+			return GREATER;
+		if (m_Mag[i] < other.m_Mag[i])
+			return LESS;
 	}
-	return 0;
+	return EQUAL;
 }
 
 /*OVERLOADED OPERATORS*/
@@ -250,59 +250,34 @@ BigInteger& BigInteger::operator*=(const BigInteger& other)
 //Greater than
 bool BigInteger::operator>(const BigInteger& other) const
 {
-	if (compare(other) == 1) {
-		return true;
-	}
-	else {
-		return false;
-	}
+	return compare(other) == GREATER;
 }
 
 bool BigInteger::operator >=(const BigInteger& other) const
 {
-	if (compare(other) != -1) {
-		return true;
-	}
-	else {
-		return false;
-	}
+	return compare(other) != LESS;
 }
 
 //Less than
 bool BigInteger::operator<(const BigInteger& other) const
 {
-	if (compare(other) == -1) {
-		return true;
-	}
-	else {
-		return false;
-	}
+	return compare(other) == LESS;
 }
 
 bool BigInteger::operator<=(const BigInteger& other) const
 {
-	if (compare(other) != 1) {
-		return true;
-	}
-	else {
-		return false;
-	}
+	return compare(other) != GREATER;
 }
 
 //Equals
 bool BigInteger::operator==(const BigInteger& other) const
 {
-	if (compare(other) == 0) {
-		return true;
-	}
-	else {
-		return false;
-	}
+	return compare(other) == EQUAL;
 }
 
 bool BigInteger::operator!=(const BigInteger& other) const
 {
-	return !(this->operator==(other));
+	return compare(other) != EQUAL;
 }
 
 //Assignment operator
@@ -320,19 +295,19 @@ BigInteger& BigInteger::operator=(const BigInteger& other)
 BigInteger BigInteger::operator-(void) const
 {
 	BigInteger result = *this;
-	result.m_sign *= -1;
+	result.m_sign = SIGN(result.m_sign * NEGATIVE);
 	return result;
 }
 
 bool BigInteger::isNegative() const
 {
-	return m_sign == -1;
+	return m_sign == NEGATIVE;
 }
 
 BigInteger BigInteger::Abs() const
 {
 	BigInteger result = *this;
-	result.m_sign = 1;
+	result.m_sign = POSITIVE;
 	return result;
 }
 
@@ -347,7 +322,7 @@ BigInteger BigInteger::operator+(const BigInteger& other) const
 {
 	BigInteger result;
 	//Get Magnitude comparison result
-	int comp_Mag = comp_Magnitudes(other);
+	COMPARE_RESULT comp_Mag = comp_Magnitudes(other);
 	//if both are of the same signs, sum their magnitudes
 	if (m_sign == other.m_sign) {
 		sum_Magnitudes(other, result);
@@ -357,9 +332,9 @@ BigInteger BigInteger::operator+(const BigInteger& other) const
 		//get Magnitude difference, assign appropriate sign
 		diff_Magnitudes(other, result, comp_Mag);
 		//if negative BigInteger has bigger magnitude, result's sign is negative, else positive
-		//if((m_sign == -1 && comp_Mag == 1) || (other.m_sign == -1 && comp_Mag == -1))
+		//if((m_sign == NEGATIVE && comp_Mag == GREATER) || (other.m_sign == NEGATIVE && comp_Mag == LESS))
 
-		result.m_sign = (m_sign * comp_Mag) | 1;
+		result.m_sign = SIGN((m_sign * comp_Mag) | POSITIVE);
 	}
 	return result;
 }
@@ -374,7 +349,7 @@ BigInteger& BigInteger::operator+=(const BigInteger& other)
 BigInteger BigInteger::operator-(const BigInteger& other) const
 {
 	BigInteger result;
-	int comp_Mag = comp_Magnitudes(other);
+	COMPARE_RESULT comp_Mag = comp_Magnitudes(other);
 	//if both BigIntegers have opposite signs, sum their magnitudes. resulting sign
 	//is sign of lhs
 	if (this->m_sign != other.m_sign) {
@@ -384,8 +359,8 @@ BigInteger BigInteger::operator-(const BigInteger& other) const
 	else {
 		//get difference of magnitudes and assign appropriate sign
 		diff_Magnitudes(other, result, comp_Mag);
-		//if ((this->isNegative() && comp_Mag == 1) || (other.isNegative() && comp_Mag == -1))
-		result.m_sign = (m_sign * comp_Mag) | 1;
+		//if ((this->isNegative() && comp_Mag == GREATER) || (other.isNegative() && comp_Mag == LESS))
+		result.m_sign = SIGN((m_sign * comp_Mag) | POSITIVE);
 	}
 	return result;
 }
@@ -427,11 +402,11 @@ BigInteger BigInteger::operator--(int)
 //Overloaded insertion operator for ostream
 std::ostream& operator<<(std::ostream& os, const BigInteger &bg)
 {
-	if (bg.m_sign == -1) {
+	if (bg.m_sign == bg.NEGATIVE) {
 		os << '-';
 	}
 	os << bg.m_Mag.back();
-	for_each(bg.m_Mag.rbegin() + 1, bg.m_Mag.rend(), [&bg, &os](const BigInteger::BaseType& val){
+	for_each(bg.m_Mag.rbegin() + 1, bg.m_Mag.rend(), [&bg, &os](const BigInteger::BaseType& val) {
 		os << std::setfill('0') << std::setw(bg.DIGITS_PER_INDEX) << val;
 	});
 	return os;

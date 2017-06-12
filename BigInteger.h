@@ -9,17 +9,20 @@ By Anthony Enem
 #include <iostream>
 #include <iomanip>
 #include <vector>
-#include <cstring>
-#include <cmath>
+#include <math.h>
 #include <algorithm>
 #include <string>
+#include<string.h>
 
 class BigInteger
 {
 	typedef long long int BaseType;
+	enum COMPARE_RESULT {GREATER = 1, LESS = -1, EQUAL = 0};
+	enum SIGN {POSITIVE = 1, NEGATIVE = -1};
+
 private:
 	std::vector<BaseType> m_Mag;
-	int m_sign;
+	SIGN m_sign;
 
 	/*PRIVATE HELPER METHODS*/
 
@@ -30,16 +33,16 @@ private:
 	void multiply(const BigInteger&, BigInteger&) const;
 
 	//Compare BigIntegers
-	int compare(const BigInteger&) const;
+	COMPARE_RESULT compare(const BigInteger&) const;
 
 	//Subtract BigIntegers
-	void diff_Magnitudes(const BigInteger&, BigInteger&, int) const;
+	void diff_Magnitudes(const BigInteger&, BigInteger&, COMPARE_RESULT) const;
 
-	int comp_Magnitudes(const BigInteger&) const;
+	COMPARE_RESULT comp_Magnitudes(const BigInteger&) const;
 
 public:
-	static const int DIGITS_PER_INDEX = 9;
-	static const BaseType MOD_VAL = pow(10, DIGITS_PER_INDEX);
+	const int DIGITS_PER_INDEX = 9;
+	const BaseType MOD_VAL = pow(10, DIGITS_PER_INDEX);
 
 	//default constructor
 	BigInteger();
@@ -103,6 +106,5 @@ public:
 	BigInteger operator--(int);
 
 };
-
 
 #endif // !BIG_INTEGER_H
